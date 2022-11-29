@@ -1,0 +1,62 @@
+version: '3' # docker-compose的版本号
+services:
+  web:
+    build: ./web
+    ports:
+      - "7000:80"
+
+  server: # 服务名唯一，配置 docker-deploy 后台服务
+    # 简写 build: ./server
+    build: # 启动服务时先将 build 指令中的 Dockerfile 打包成镜像，再去运行镜像，镜像名会带有前缀（当前的目录名）
+      context: ./server #指定 Dockerfile 所在的上下文目录，"." 表示当前目录
+      dockerfile: Dockerfile # Dockerfile 文件名称
+    container_name: docker-deploy_server_v1 # 容器名称
+    ports:
+      - "0.0.0.0:7001:7001" # 宿主主机端口号:容器端口号
+    depends_on: # docker-deploy 服务依赖的其他服务，按照指定的顺序先启动依赖的服务，再启动后端项目服务
+      # - postgres
+      - mysql
+      - redis
+      # - nginx
+
+  mysql:
+    image: mysql:5.7
+    ports:
+      - 3306:3306
+    volumes:
+      - /docker-deploy/mysql/data:/data # 挂载 mysql 存储数据目录到容器中，持久化数据库数据，避免因容器停止导致数据丢失的情况
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+
+  # 配置redis
+  redis:
+    image: redis:latest # redis镜像
+    container_name: docker-deploy_redis_v1 # redis镜像的容器名称
+    ports:
+      - 6379:6379 # 主机端口：容器端口的映射，后台项目服务中配置文件中为 redis 配置的端口，要为主机端口
+    volumes:
+      - /docker-deploy/redis/data:/data # 挂载 Redis 存储数据目录到容器中，持久化数据库数据，避免因容器停止导致数据丢失的情况
+    command: "redis-server --appendonly yes" # 此命令用来覆盖容器默认命令
+  # # 配置postgres
+  # postgres:
+  #   image: postgres:latest
+  #   container_name: docker-deploy_v1_postgres
+  #   ports:
+  #     - 5432:5432
+  #   volumes:
+  #     - /docker-deploy/env/psotgres/data:/data/db # 挂载postgres数据目录到容器中，持久化数据库数据
+  #   environment: # 配置postgres的环境变量
+  #     POSTGRES_PASSWORD: root # 设置postgres的连接（即数据库）密码，默认用户名为postgres，其他数据库可以手动设置用户名和密码
+  # # 配置nginx
+  # nginx:
+  #   image: nginx:latest
+  #   container_name: docker-deploy_v1_nginx
+  #   ports:
+  #     - 8090:80 # 注意此处配置的端口要和 /docker-deploy/env/nginx/conf/nginx.conf 文件中监听的端口一致
+  #   volumes:
+  #     - /docker-deploy/web:/usr/local/nginx/html
+  #     - /docker-deploy/env/nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+  #     - /docker-deploy/env/nginx/logs:/var/log/nginx
+
+# 运行指令
+# docker-compose up -d
