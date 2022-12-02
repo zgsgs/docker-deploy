@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 FROM nginx:latest
-COPY ./nginx/conf/web.conf /etc/nginx
+COPY ./nginx/conf/default.conf /etc/nginx/conf.d/default.conf
 
 # 未指定镜像别名时 --from=0
 COPY --from=builder /web/dist /usr/share/nginx/html

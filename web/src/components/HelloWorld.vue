@@ -4,9 +4,13 @@ import { ref } from 'vue'
 defineProps<{ msg: string }>()
 
 const count = ref(0)
-async function getApiJson() {
+async function getApiHello() {
   const res = await fetch('/api/')
-  console.log(res);
+  console.log('hello', res);
+}
+async function getApiJson() {
+  const res = await fetch('/api/json')
+  console.log('json', res);
 }
 </script>
 
@@ -14,8 +18,9 @@ async function getApiJson() {
   <h1>{{ msg }}</h1>
 
   <div class="card">
-    <div style="display: flex;gap: 8px;">
+    <div class="space">
       <button type="button" @click="count++">count is {{ count }}</button>
+      <button type="button" @click="getApiHello">Get HelloWorld</button>
       <button type="button" @click="getApiJson">Get Json</button>
     </div>
     <p>
@@ -41,5 +46,11 @@ async function getApiJson() {
 <style scoped>
 .read-the-docs {
   color: #888;
+}
+.space{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
 }
 </style>
